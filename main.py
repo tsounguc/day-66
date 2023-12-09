@@ -87,6 +87,13 @@ def get_random_cafe():
             return jsonify(cafe=random_cafe.to_dict())
 
 
+@app.route("/all", methods=['GET'])
+def get_all_cafes():
+    with app.app_context():
+        results = db.session.execute(db.select(Cafe).order_by(Cafe.id))
+        cafes = results.scalars().all()
+        return jsonify(cafes=[cafe.to_dict() for cafe in cafes])
+
 # HTTP GET - Read Record
 
 # HTTP POST - Create Record
