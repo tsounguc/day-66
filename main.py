@@ -46,6 +46,11 @@ def home():
     return render_template("index.html")
 
 
+@app.route("/random", methods=['GET'])
+def random():
+    pass
+
+
 # HTTP GET - Read Record
 
 # HTTP POST - Create Record
