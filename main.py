@@ -1,3 +1,4 @@
+import os
 import random
 
 from flask import Flask, jsonify, render_template, request
@@ -22,7 +23,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cafes.db'
 db = SQLAlchemy()
 db.init_app(app)
-
+api_key = os.environ.get("api-key", "Couldn't find api-key")
 
 # Cafe TABLE Configuration
 class Cafe(db.Model):
@@ -141,7 +142,23 @@ def update_price(cafe_id):
             return jsonify(error={"Not Found": "Sorry a cafe with that id was not found in the database."}), 404
 
 
+
 # HTTP DELETE - Delete Record
+@app.route('/report-closed/<cafe_id>', methods=['DELETE'])
+def delete(cafe_id):
+    with app.app_context():
+
+        api_key_from_request = request.form.get('api-key')
+        cafe_to_delete = db.session.execute(db.select(Cafe).where(Cafe.id == cafe_id)).scalar()
+        if api_key_from_request is api_key:
+            if cafe_to_delete:
+                db.session.delete(cafe_to_delete)
+                db.session.commit()
+                return jsonify(response={"success":f"Cafe {cafe_id} successfully deleted"}), 200
+            else:
+                return jsonify(error={"Not Found": "Sorry a cafe with that id was not found in the database."}), 404
+        else:
+            return jsonify(error= "Sorry, that's not allowed. Make sure you have the correct api-key"),404
 
 
 if __name__ == '__main__':
