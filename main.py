@@ -101,9 +101,9 @@ def search():
         results = db.session.execute(db.select(Cafe).where(Cafe.location == loc))
         cafes = results.scalars().all()
         if cafes:
-            return jsonify(cafes=[cafe.to_dict() for cafe in cafes])
+            return jsonify(cafes=[cafe.to_dict() for cafe in cafes]), 200
         else:
-            return jsonify(error={"Not Found": "Sorry, we don't have a cafe at that location."})
+            return jsonify(error={"Not Found": "Sorry, we don't have a cafe at that location."}), 4040
 
 
 # HTTP POST - Create Record
@@ -128,6 +128,18 @@ def post_new_cafe():
 
 
 # HTTP PUT/PATCH - Update Record
+@app.route('/update-price/<cafe_id>', methods=['PATCH'])
+def update_price(cafe_id):
+    new_price = request.form.get('new_price')
+    with app.app_context():
+        cafe_to_update = db.session.execute(db.select(Cafe).where(Cafe.id == cafe_id)).scalar()
+        if cafe_to_update:
+            cafe_to_update.coffee_price = new_price
+            db.session.commit()
+            return jsonify(response={"success": "Successfully updated the price."}), 200
+        else:
+            return jsonify(error={"Not Found": "Sorry a cafe with that id was not found in the database."}), 404
+
 
 # HTTP DELETE - Delete Record
 
