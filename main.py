@@ -25,6 +25,7 @@ db = SQLAlchemy()
 db.init_app(app)
 api_key = os.environ.get("api-key", "Couldn't find api-key")
 
+
 # Cafe TABLE Configuration
 class Cafe(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -131,7 +132,7 @@ def post_new_cafe():
 # HTTP PUT/PATCH - Update Record
 @app.route('/update-price/<cafe_id>', methods=['PATCH'])
 def update_price(cafe_id):
-    new_price = request.form.get('new_price')
+    new_price = request.args.get('new_price')
     with app.app_context():
         cafe_to_update = db.session.execute(db.select(Cafe).where(Cafe.id == cafe_id)).scalar()
         if cafe_to_update:
@@ -142,23 +143,22 @@ def update_price(cafe_id):
             return jsonify(error={"Not Found": "Sorry a cafe with that id was not found in the database."}), 404
 
 
-
 # HTTP DELETE - Delete Record
 @app.route('/report-closed/<cafe_id>', methods=['DELETE'])
 def delete(cafe_id):
     with app.app_context():
 
-        api_key_from_request = request.form.get('api-key')
+        api_key_from_request = request.args.get('api-key')
         cafe_to_delete = db.session.execute(db.select(Cafe).where(Cafe.id == cafe_id)).scalar()
-        if api_key_from_request is api_key:
+        if api_key_from_request == api_key:
             if cafe_to_delete:
                 db.session.delete(cafe_to_delete)
                 db.session.commit()
-                return jsonify(response={"success":f"Cafe {cafe_id} successfully deleted"}), 200
+                return jsonify(response={"success": f"Cafe {cafe_id} successfully deleted"}), 200
             else:
                 return jsonify(error={"Not Found": "Sorry a cafe with that id was not found in the database."}), 404
         else:
-            return jsonify(error= "Sorry, that's not allowed. Make sure you have the correct api-key"),404
+            return jsonify(error="Sorry, that's not allowed. Make sure you have the correct api-key"), 404
 
 
 if __name__ == '__main__':
